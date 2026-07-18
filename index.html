@@ -259,49 +259,67 @@
     function buildCharacter() {
       charGroup.clear();
       const scale = state.height / 170;
-
+      const skinMat = new THREE.MeshStandardMaterial({ color: state.skin, roughness: 0.6 });
       const jerseyMat = new THREE.MeshStandardMaterial({ map: jerseyTexture, roughness: 0.7 });
-      const torso = new THREE.Mesh(new THREE.CapsuleGeometry(0.38, 0.9, 6, 12), jerseyMat);
-      torso.position.y = 1.05 * scale;
-      torso.scale.set(1, scale, 1);
+      const pantsMat = new THREE.MeshStandardMaterial({ color: 0x22254a, roughness: 0.8 });
+      const shoeMat = new THREE.MeshStandardMaterial({ color: 0x161616, roughness: 0.6 });
+
+      // মাথা + ঘাড়
+      const head = new THREE.Mesh(new THREE.SphereGeometry(0.24, 20, 20), skinMat);
+      head.position.y = 1.72 * scale;
+      head.castShadow = true;
+      charGroup.add(head);
+
+      const neck = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.09, 0.12, 10), skinMat);
+      neck.position.y = 1.55 * scale;
+      charGroup.add(neck);
+
+      // ধড় (জার্সি)
+      const torso = new THREE.Mesh(new THREE.CapsuleGeometry(0.26, 0.62, 6, 12), jerseyMat);
+      torso.position.y = 1.18 * scale;
       torso.castShadow = true;
       charGroup.add(torso);
 
-      const pantsMat = new THREE.MeshStandardMaterial({ color: 0x22254a, roughness: 0.8 });
-      const legs = new THREE.Mesh(new THREE.CylinderGeometry(0.32, 0.28, 0.8, 12), pantsMat);
-      legs.position.y = 0.4 * scale;
-      legs.scale.set(1, scale, 1);
-      legs.castShadow = true;
-      charGroup.add(legs);
+      // হাত
+      [-1, 1].forEach((s) => {
+        const arm = new THREE.Mesh(new THREE.CapsuleGeometry(0.075, 0.55, 6, 12), skinMat);
+        arm.position.set(s * 0.34, 1.1 * scale, 0);
+        arm.rotation.z = s * 0.12;
+        arm.castShadow = true;
+        charGroup.add(arm);
+      });
 
-      const headMat = new THREE.MeshStandardMaterial({ color: state.skin, roughness: 0.6 });
-      const head = new THREE.Mesh(new THREE.SphereGeometry(0.26, 20, 20), headMat);
-      head.position.y = 1.75 * scale;
-      head.castShadow = true;
-      charGroup.add(head);
+      // পা (মেয়ে হলে সামান্য চওড়া/স্কার্ট-স্টাইল, ছেলে হলে প্যান্ট)
+      const legGeo = state.gender === 'female'
+        ? new THREE.ConeGeometry(0.16, 0.65, 10)
+        : new THREE.CapsuleGeometry(0.11, 0.65, 6, 12);
+      [-1, 1].forEach((s) => {
+        const leg = new THREE.Mesh(legGeo, pantsMat);
+        leg.position.set(s * 0.13, 0.5 * scale, 0);
+        leg.castShadow = true;
+        charGroup.add(leg);
+
+        const shoe = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.1, 0.28), shoeMat);
+        shoe.position.set(s * 0.13, 0.06 * scale, 0.05);
+        shoe.castShadow = true;
+        charGroup.add(shoe);
+      });
 
       // হেয়ার
       if (state.hair !== 'none') {
         const hairMat = new THREE.MeshStandardMaterial({ color: 0x1a1a1a, roughness: 0.5 });
         if (state.hair === 'short') {
-          const hairMesh = new THREE.Mesh(new THREE.SphereGeometry(0.28, 16, 16, 0, Math.PI * 2, 0, Math.PI * 0.55), hairMat);
-          hairMesh.position.y = 1.8 * scale;
+          const hairMesh = new THREE.Mesh(new THREE.SphereGeometry(0.25, 16, 16, 0, Math.PI * 2, 0, Math.PI * 0.55), hairMat);
+          hairMesh.position.y = 1.77 * scale;
           charGroup.add(hairMesh);
         } else {
-          const hairMesh = new THREE.Mesh(new THREE.SphereGeometry(0.29, 16, 16, 0, Math.PI * 2, 0, Math.PI * 0.6), hairMat);
-          hairMesh.position.y = 1.8 * scale;
+          const hairMesh = new THREE.Mesh(new THREE.SphereGeometry(0.26, 16, 16, 0, Math.PI * 2, 0, Math.PI * 0.6), hairMat);
+          hairMesh.position.y = 1.77 * scale;
           charGroup.add(hairMesh);
-          const back = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.15, 0.55, 12), hairMat);
-          back.position.set(0, 1.55 * scale, -0.1);
+          const back = new THREE.Mesh(new THREE.CylinderGeometry(0.18, 0.13, 0.5, 12), hairMat);
+          back.position.set(0, 1.5 * scale, -0.08);
           charGroup.add(back);
         }
-      }
-
-      // মেয়ে হলে সিম্পল স্কার্ট-স্টাইল লেগ শেপ
-      if (state.gender === 'female') {
-        legs.geometry.dispose();
-        legs.geometry = new THREE.ConeGeometry(0.42, 0.75, 12);
-        legs.position.y = 0.42 * scale;
       }
     }
 
